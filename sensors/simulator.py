@@ -24,7 +24,7 @@ while True:
             "timestamp": time.time()
         }
 
-        topic = f"/{room}/environment"
+        topic = f"pjbl/{room}/environment"
 
         client.publish(topic, json.dumps(data))
 

@@ -1,61 +1,86 @@
 
-import sqlite3
 import os
+import sqlite3
 
-DATABASE_PATH = os.getenv("DATABASE_PATH", "smartspace.db")
+DATABASE_PATH = os.getenv(
+    "DATABASE_PATH",
+    "/data/smartspace.db"
+)
 
 
 def get_connection():
-    return sqlite3.connect(DATABASE_PATH)
+    connection = sqlite3.connect(DATABASE_PATH)
+    connection.row_factory = sqlite3.Row
+    return connection
 
 
 def initialize():
-    print(f"Initializing database at: {DATABASE_PATH}")
+    # Create the database directory if necessary
+    os.makedirs(os.path.dirname(DATABASE_PATH), exist_ok=True)
 
-    conn = get_connection()
+    connection = get_connection()
 
-    conn.execute("""
+    connection.execute("""
         CREATE TABLE IF NOT EXISTS measurements (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            room TEXT,
+            room TEXT NOT NULL,
             temperature REAL,
             occupancy INTEGER,
-            timestamp REAL
+            timestamp REAL NOT NULL
         )
     """)
 
-    conn.commit()
-    conn.close()
+    connection.execute("""
+        CREATE INDEX IF NOT EXISTS idx_measurements_room_timestamp
+        ON measurements (room, timestamp)
+    """)
 
-    print("Database initialized successfully!")
+    connection.commit()
+    connection.close()
+
+    print(f"Database initialized: {DATABASE_PATH}", flush=True)
 
 
 def save_measurement(room, data):
-    conn = get_connection()
+    connection = get_connection()
 
-    conn.execute("""
-        INSERT INTO measurements
-        (room, temperature, occupancy, timestamp)
-        VALUES (?, ?, ?, ?)
-    """, (
-        room,
-        data["temperature"],
-        data["occupancy"],
-        data["timestamp"]
-    ))
+    try:
+        connection.execute("""
+            INSERT INTO measurements (
+                room,
+                temperature,
+                occupancy,
+                timestamp
+            )
+            VALUES (?, ?, ?, ?)
+        """, (
+            room,
+            data["temperature"],
+            data["occupancy"],
+            data["timestamp"]
+        ))
 
-    conn.commit()
-    conn.close()
+        connection.commit()
 
-def consult_measurement():
-    conn = get_connection()
+    finally:
+        connection.close()
 
-    conn.execute("""
-        SELECT * FROM measurements
-    """)
+def get_latest_measurements():
+    connection = get_connection()
 
-    for row in conn.fetchall():
-        print(row)
+    try:
+        rows = connection.execute("""
+            SELECT m.*
+            FROM measurements m
+            INNER JOIN (
+                SELECT room, MAX(id) AS latest_id
+                FROM measurements
+                GROUP BY room
+            ) latest ON m.id = latest.latest_id
+            ORDER BY m.room
+        """).fetchall()
 
-    conn.commit()
-    conn.close()
+        return [dict(row) for row in rows]
+
+    finally:
+        connection.close()
