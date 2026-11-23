@@ -27,6 +27,7 @@ services:
     environment:
       MQTT_HOST: mosquitto
       DATABASE_PATH: /data/smartspace.db
+      PYTHONUNBUFFERED: 1
     ports:
       - "8000:8000"
     volumes:

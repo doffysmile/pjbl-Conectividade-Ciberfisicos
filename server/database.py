@@ -1,7 +1,18 @@
+
 import sqlite3
+import os
+
+DATABASE_PATH = os.getenv("DATABASE_PATH", "smartspace.db")
+
+
+def get_connection():
+    return sqlite3.connect(DATABASE_PATH)
+
 
 def initialize():
-    conn = sqlite3.connect("smartspace.db")
+    print(f"Initializing database at: {DATABASE_PATH}")
+
+    conn = get_connection()
 
     conn.execute("""
         CREATE TABLE IF NOT EXISTS measurements (
@@ -16,8 +27,11 @@ def initialize():
     conn.commit()
     conn.close()
 
+    print("Database initialized successfully!")
+
+
 def save_measurement(room, data):
-    conn = sqlite3.connect("smartspace.db")
+    conn = get_connection()
 
     conn.execute("""
         INSERT INTO measurements
@@ -29,6 +43,19 @@ def save_measurement(room, data):
         data["occupancy"],
         data["timestamp"]
     ))
+
+    conn.commit()
+    conn.close()
+
+def consult_measurement():
+    conn = get_connection()
+
+    conn.execute("""
+        SELECT * FROM measurements
+    """)
+
+    for row in conn.fetchall():
+        print(row)
 
     conn.commit()
     conn.close()

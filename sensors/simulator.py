@@ -20,7 +20,7 @@ while True:
     for room in rooms:
         data = {
             "temperature": round(random.uniform(20, 30), 1),
-            "occupancy": random.randint(0, 25),
+            "occupancy": random.randint(0, 1),
             "timestamp": time.time()
         }
 
