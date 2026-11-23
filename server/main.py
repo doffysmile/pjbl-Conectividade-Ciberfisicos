@@ -15,7 +15,11 @@ from database import (
 )
 
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder="../dashboard/templates",
+    static_folder="../dashboard/static"
+)
 
 MQTT_HOST = os.getenv("MQTT_HOST", "localhost")
 SENSOR_TIMEOUT_SECONDS = 60
