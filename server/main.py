@@ -6,7 +6,7 @@ import math
 
 import paho.mqtt.client as mqtt
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 
 from database import (
     initialize,
@@ -234,6 +234,10 @@ def metrics_endpoint():
         ),
         "total_rooms": len(rooms)
     })
+
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
+    return render_template("index.html")
 
 
 # ============================================================
