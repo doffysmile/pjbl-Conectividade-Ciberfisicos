@@ -22,7 +22,9 @@ services:
       - smartspace-net
 
   server:
-    build: ./server
+    build:
+      context: .
+      dockerfile: server/Dockerfile
     container_name: smartspace-server
     environment:
       MQTT_HOST: mosquitto
